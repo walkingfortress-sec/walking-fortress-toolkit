@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: walking-fortress-suricata
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ./suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ./rules:/var/lib/suricata/rules
+      - ./logs:/var/log/suricata
+    environment:
+      - SURICATA_OPTIONS=-i eth0
+    restart: unless-stopped
