@@ -1,0 +1,55 @@
+name: Validate SOC Detection Rules & Scripts
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-assets:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Validate XML Syntax (Wazuh Rules)
+      run: |
+        python3 -c "
+        import xml.etree.ElementTree as ET
+        import glob
+        
+        xml_files = glob.glob('**/*.xml', recursive=True)
+        for f in xml_files:
+            try:
+                ET.parse(f)
+                print(f'[VALIDATED XML] {f}')
+            except Exception as e:
+                print(f'[ERROR IN XML] {f}: {e}')
+                exit(1)
+        "
+
+    - name: Validate Python Scripts (SOAR & Webhooks)
+      run: |
+        python3 -m py_compile soar/auto_responder_daemon.py
+        echo "[VALIDATED PYTHON] soar/auto_responder_daemon.py compiled successfully."
+
+    - name: Verify SPL Query Structure
+      run: |
+        python3 -c "
+        import glob
+        spl_files = glob.glob('**/*.spl', recursive=True)
+        for f in spl_files:
+            with open(f, 'r') as file:
+                content = file.read()
+                if 'index=' not in content:
+                    print(f'[WARNING] {f} missing index definition')
+                else:
+                    print(f'[VALIDATED SPL] {f}')
+        "
