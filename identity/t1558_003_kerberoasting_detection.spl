@@ -1,0 +1,18 @@
+;; ============================================================================
+;; Threat Hunting Query: T1558.003 - Steal or Forge Kerberos Tickets: Kerberoasting
+;; Target Log: Windows Security Event Code 4769 (A Kerberos service ticket was requested)
+;; Mechanism: Identifies TGS-REQ using legacy RC4-HMAC (0x17) encryption types
+;; ============================================================================
+
+index=win_telemetry EventCode=4769 TicketOptions="0x40810000" TicketEncryptionType="0x17"
+| eval TargetService = ServiceName
+| eval RequestingUser = TargetUserName
+| where ServiceName != "*$" AND RequestingUser != "*$"
+| stats 
+    count 
+    earliest(_time) as first_request 
+    latest(_time) as last_request 
+    values(TargetService) as RequestedSPNs 
+    by RequestingUser ClientAddress
+| where count > 3
+| eval AlertContext="Potential Kerberoasting Activity via Impacket/GetUserSPNs"

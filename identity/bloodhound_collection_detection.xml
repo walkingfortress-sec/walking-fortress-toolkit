@@ -1,0 +1,12 @@
+<group name="active_directory,ad_recon,">
+  <!-- Detect SharpHound / Bloodhound Execution via Command Line Arguments -->
+  <rule id="100201" level="12">
+    <if_sid>60000</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(sharphound|bloodhound|invoke-bloodhound|-collectionmethod)</field>
+    <description>Walking Fortress: SharpHound/BloodHound Active Directory Enumeration Tool Detected</description>
+    <mitre>
+      <id>T1087.002</id>
+      <id>T1069.002</id>
+    </mitre>
+  </rule>
+</group>
