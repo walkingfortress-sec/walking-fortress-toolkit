@@ -1,0 +1,17 @@
+;; ============================================================================
+;; Threat Hunting Query: Process Hollowing (T1055.012) & DLL Side-Loading (T1574.002)
+;; Telemetry Sources: Sysmon EventID 1 (Process Create), EventID 7 (Image Loaded), EventID 10 (ProcessAccess)
+;; ============================================================================
+
+;; 1. Process Hollowing Detection (Suspicious Memory Access to Suspended Processes)
+(index=win_telemetry EventCode=10 TargetImage="*\\svchost.exe" OR TargetImage="*\\lsass.exe")
+| eval GrantedAccessHex = printf("%X", GrantedAccess)
+| where GrantedAccessHex="0x1F0FFF" OR GrantedAccessHex="0x1F1FFF"
+| stats count values(SourceImage) as InjectorProcess by TargetImage host
+
+;; 2. DLL Side-Loading Detection (Unsigned or Non-Standard System DLL Loads)
+| append [
+    search index=win_telemetry EventCode=7 Signed=false 
+    | where NOT like(ImageLoaded, "C:\\Windows\\System32\\%") AND NOT like(ImageLoaded, "C:\\Program Files%")
+    | stats count values(ImageLoaded) as SuspiciousDLL by Image host
+]

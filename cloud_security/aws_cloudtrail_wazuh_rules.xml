@@ -1,0 +1,22 @@
+<group name="aws,cloudtrail,security_group,iam,">
+  <!-- Detect AWS Root Account Usage -->
+  <rule id="100400" level="12">
+    <if_sid>80200</if_sid>
+    <field name="aws.userIdentity.type">Root</field>
+    <description>Walking Fortress Cloud: AWS Root Account Activity Detected</description>
+    <mitre>
+      <id>T1078.004</id>
+    </mitre>
+  </rule>
+
+  <!-- Detect Open Security Group Ingress Rule (0.0.0.0/0) -->
+  <rule id="100401" level="10">
+    <if_sid>80200</if_sid>
+    <field name="aws.eventName">AuthorizeSecurityGroupIngress</field>
+    <field name="aws.requestParameters.ipPermissions.items.ipRanges.items.cidrIp">0.0.0.0/0</field>
+    <description>Walking Fortress Cloud: Security Group Opened Wide to Internet (0.0.0.0/0)</description>
+    <mitre>
+      <id>T1562.001</id>
+    </mitre>
+  </rule>
+</group>

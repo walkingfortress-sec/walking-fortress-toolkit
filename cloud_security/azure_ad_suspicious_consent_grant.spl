@@ -1,0 +1,16 @@
+;; ============================================================================
+;; Threat Hunting Query: Azure AD Illicit OAuth Consent Grant
+;; Log Source: Azure AD AuditLogs (sourcetype=azure:aad:audit)
+;; MITRE ATT&CK: T1528 (Steal Application Access Token)
+;; ============================================================================
+
+index=cloud_telemetry sourcetype="azure:aad:audit" operationName="Consent to application"
+| eval Target_User = user
+| eval App_ID = 'targetResources{}.id'
+| eval Permissions_Granted = 'targetResources{}.modifiedProperties{}.newValue'
+| where like(Permissions_Granted, "%Mail.Read%") OR like(Permissions_Granted, "%Directory.ReadWrite.All%") OR like(Permissions_Granted, "%Files.ReadWrite.All%")
+| stats 
+    count 
+    earliest(_time) as InitialGrant 
+    values(Permissions_Granted) as ScopeList 
+    by Target_User App_ID initiatedBy.user.userPrincipalName clientIp

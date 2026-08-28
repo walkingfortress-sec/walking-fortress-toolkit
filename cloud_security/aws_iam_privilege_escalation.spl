@@ -1,0 +1,18 @@
+;; ============================================================================
+;; Threat Hunting Query: AWS IAM Privilege Escalation & Persistence
+;; Log Source: AWS CloudTrail (sourcetype=aws:cloudtrail)
+;; MITRE ATT&CK: T1098 (Account Manipulation), T1078 (Valid Accounts)
+;; ============================================================================
+
+index=cloud_telemetry sourcetype="aws:cloudtrail" 
+(eventName=AttachUserPolicy OR eventName=AttachRolePolicy OR eventName=PutUserPolicy OR eventName=CreateAccessKey)
+| eval Target_Identity = coalesce('requestParameters.userName', 'requestParameters.roleName')
+| eval Admin_Policy_Attached = if(like('requestParameters.policyArn', "%AdministratorAccess%"), "CRITICAL", "HIGH")
+| stats 
+    count 
+    earliest(_time) as first_seen 
+    latest(_time) as last_seen 
+    values(eventName) as Actions_Taken 
+    values(requestParameters.policyArn) as Policies_Attached 
+    by userIdentity.arn Target_Identity userAgent src_ip
+| where Admin_Policy_Attached="CRITICAL" OR count > 3
