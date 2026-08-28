@@ -1,0 +1,92 @@
+<dashboard version="1.1" theme="dark">
+  <label>Walking Fortress - SOC Operational &amp; KPI Executive Dashboard</label>
+  <description>Real-time metrics tracking detection latency (MTTD), automated containment SLA (MTTR), and MITRE ATT&amp;CK technique coverage.</description>
+  
+  <!-- Row 1: Key Performance Indicators -->
+  <row>
+    <panel>
+      <single>
+        <title>Mean Time To Detect (MTTD)</title>
+        <search>
+          <query>
+            index=win_telemetry sourcetype="sysmon" OR sourcetype="WinEventLog"
+            | eval detection_latency = _time - _indextime
+            | stats avg(detection_latency) as avg_mttd
+            | eval avg_mttd = round(avg_mttd, 2) . "s"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[30,60]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Mean Time To Contain (MTTR - SOAR SLA)</title>
+        <search>
+          <query>
+            index=soar_logs sourcetype="auto_responder"
+            | stats avg(containment_duration_seconds) as avg_mttr
+            | eval avg_mttr = round(avg_mttr, 2) . "s"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[15,45]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Critical Alerts (24h)</title>
+        <search>
+          <query>
+            index=win_telemetry OR index=cloud_telemetry severity="CRITICAL"
+            | stats count
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Row 2: Alert Volume & MITRE ATT&CK Mapping -->
+  <row>
+    <panel>
+      <chart>
+        <title>Alert Volume by Severity Over Time</title>
+        <search>
+          <query>
+            index=win_telemetry OR index=cloud_telemetry
+            | timechart count by severity
+          </query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+      </chart>
+    </panel>
+    <panel>
+      <table>
+        <title>Active MITRE ATT&amp;CK Triggered Techniques</title>
+        <search>
+          <query>
+            index=win_telemetry OR index=cloud_telemetry mitre_id="*"
+            | stats count earliest(_time) as FirstSeen latest(_time) as LastSeen by mitre_id rule_name host
+            | convert ctime(FirstSeen) ctime(LastSeen)
+            | sort - count
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+</dashboard>
