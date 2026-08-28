@@ -1,0 +1,15 @@
+{
+  "sid": "splunk_alert_sig_9901",
+  "search_name": "Walking Fortress - Critical MITRE Detection",
+  "app": "search",
+  "owner": "admin",
+  "result": {
+    "host": "DC01.corp.local",
+    "User": "CORP\\Administrator",
+    "EventCode": "4104",
+    "Attack_Technique": "T1059.001 - Obfuscated PowerShell",
+    "Commands_Run": "powershell -EncodedCommand VwByAGkAdABlAC0ASABvAHMAdAA=",
+    "First_Seen": "2026-08-28T12:00:00.000Z"
+  },
+  "results_link": "http://127.0.0.1:8000/app/search/flashtimeline?q=search%20..."
+}
