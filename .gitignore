@@ -1,0 +1,19 @@
+# Python cache & build files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Environment files & secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+
+# IDE & system artifacts
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
