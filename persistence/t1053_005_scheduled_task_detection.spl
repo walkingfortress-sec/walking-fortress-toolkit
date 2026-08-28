@@ -1,0 +1,17 @@
+;; ============================================================================
+;; Threat Hunting Query: T1053.005 - Scheduled Task Creation Persistence
+;; Target Logs: Windows Security EventCode 4698 & Sysmon EventCode 1
+;; ============================================================================
+
+(index=win_telemetry EventCode=4698) OR (index=win_telemetry EventCode=1 Image="*schtasks.exe*")
+| eval Task_Name = coalesce(TaskName, Task_Name)
+| eval User_Context = coalesce(SubjectUserName, User)
+| stats 
+    count 
+    earliest(_time) as first_seen 
+    latest(_time) as last_seen 
+    values(CommandLine) as CmdExecuted 
+    values(TaskContent) as TaskXML 
+    by host User_Context Task_Name
+| where isnotnull(CmdExecuted) OR isnotnull(TaskXML)
+| eval Risk_Score = if(like(CmdExecuted, "%powershell%") OR like(CmdExecuted, "%cmd%"), "HIGH", "MEDIUM")

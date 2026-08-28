@@ -1,0 +1,11 @@
+<group name="windows,sysmon,persistence,">
+  <!-- Detect Sysmon WMI Event Consumer/Filter Binding (Event ID 19, 20, 21) -->
+  <rule id="100301" level="13">
+    <if_sid>60000</if_sid>
+    <field name="win.system.eventID">^(19|20|21)$</field>
+    <description>Walking Fortress: WMI Persistence Mechanism Established (Sysmon Event 19/20/21)</description>
+    <mitre>
+      <id>T1546.003</id>
+    </mitre>
+  </rule>
+</group>
