@@ -1,0 +1,33 @@
+name: Walking Fortress SOC Pipeline CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python Environment
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Test Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f tests/test_requirements.txt ]; then pip install -r tests/test_requirements.txt; fi
+
+    - name: Run SIEM Detection Rule Regression Suite
+      run: |
+        python tests/siem_rule_regression_runner.py
+
+    - name: Run E2E Incident Response Simulator
+      run: |
+        python tests/e2e_ir_pipeline_simulator.py
