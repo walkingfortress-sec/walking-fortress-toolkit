@@ -1,0 +1,2 @@
+ip,domain,file_hash,threat_actor,confidence_score,category,first_seen
+10.0.0.55,c2-callback.walkingfortress.local,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,APT29,90,C2_Server,2026-08-28T13:00:00Z

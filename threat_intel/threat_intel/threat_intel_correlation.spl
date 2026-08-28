@@ -1,0 +1,10 @@
+;; ============================================================================
+;; Threat Hunting Query: Real-time IOC Lookup Table Correlation
+;; Log Source: Sysmon Event ID 3 (Network) & Event ID 1 (Process Hash)
+;; ============================================================================
+
+index=win_telemetry (EventCode=3 OR EventCode=1)
+| lookup threat_intel_lookup_template.csv ip as DestinationIp OUTPUT threat_actor, confidence_score, category
+| lookup threat_intel_lookup_template.csv file_hash as Hashes OUTPUT threat_actor as HashActor, category as HashCategory
+| where isnotnull(threat_actor) OR isnotnull(HashActor)
+| stats count earliest(_time) as FirstSeen latest(_time) as LastSeen by host Image DestinationIp threat_actor HashActor category
