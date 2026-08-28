@@ -1,0 +1,28 @@
+<dashboard version="1.1" theme="dark">
+  <label>Walking Fortress - Executive SOC Telemetry &amp; Response Overview</label>
+  <row>
+    <panel>
+      <single>
+        <title>Total High Severity Alerts (24h)</title>
+        <search>
+          <query>index=win_telemetry EventCode=4104 OR EventCode=4698 | stats count</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[1]</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Active Host Isolation Actions</title>
+        <search>
+          <query>index=zeek_telemetry action_taken="host_isolated" | stats count</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </single>
+    </panel>
+  </row>
+</dashboard>
