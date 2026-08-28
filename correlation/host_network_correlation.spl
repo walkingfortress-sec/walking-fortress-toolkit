@@ -1,0 +1,23 @@
+;; ============================================================================
+;; Walking Fortress Threat Hunting Query: Host-to-Network Telemetry Correlation
+;; Objective: Correlate PowerShell Process Creation (Sysmon Event 1 / Event 4104) 
+;;            with Zeek Network Connections (conn.log) within a 5-second window.
+;; ATT&CK Mapping: T1059.001 (PowerShell) + T1071.001 (Web Protocols)
+;; ============================================================================
+
+(index=win_telemetry EventCode=1 Image="*powershell.exe*") OR (index=zeek_telemetry sourcetype="zeek:conn")
+| eval src_ip = coalesce(SourceAddress, id_orig_h)
+| eval dest_ip = coalesce(DestinationAddress, id_resp_h)
+| eval dest_port = coalesce(DestinationPort, id_resp_p)
+| stats 
+    earliest(_time) as first_seen 
+    latest(_time) as last_seen 
+    values(Image) as ExecutedProcess 
+    values(CommandLine) as CmdArgs 
+    values(service) as NetworkProtocol 
+    values(history) as ConnState 
+    by src_ip dest_ip dest_port
+| where isnotnull(ExecutedProcess) AND isnotnull(NetworkProtocol)
+| eval TimeWindowSeconds = last_seen - first_seen
+| where TimeWindowSeconds <= 5
+| fields first_seen, src_ip, dest_ip, dest_port, ExecutedProcess, CmdArgs, NetworkProtocol, ConnState
