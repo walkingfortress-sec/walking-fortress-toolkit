@@ -1,0 +1,42 @@
+{
+  "test_cases": [
+    {
+      "rule_target": "T1558.003_Kerberoasting",
+      "expected_result": "MATCH",
+      "log_data": {
+        "index": "win_telemetry",
+        "EventCode": 4769,
+        "TicketOptions": "0x40810000",
+        "TicketEncryptionType": "0x17",
+        "ServiceName": "sql_admin_service",
+        "ClientAddress": "::ffff:10.0.0.55"
+      }
+    },
+    {
+      "rule_target": "T1053.005_Scheduled_Task",
+      "expected_result": "MATCH",
+      "log_data": {
+        "index": "win_telemetry",
+        "EventCode": 4698,
+        "TaskName": "\\Microsoft\\Windows\\UpdateOrchestrator\\PersistenceTask",
+        "TaskContent": "<Command>powershell.exe -e Q2hlY2tJbigp</Command>",
+        "SubjectUserName": "SYSTEM"
+      }
+    },
+    {
+      "rule_target": "AWS_IAM_Privilege_Escalation",
+      "expected_result": "MATCH",
+      "log_data": {
+        "sourcetype": "aws:cloudtrail",
+        "eventName": "AttachUserPolicy",
+        "requestParameters": {
+          "userName": "backdoor_user",
+          "policyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        },
+        "userIdentity": {
+          "arn": "arn:aws:iam::123456789012:user/compromised_dev"
+        }
+      }
+    }
+  ]
+}
